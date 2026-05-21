@@ -37,12 +37,12 @@ class XMBVersion
     function get()
     {
         $data = array(
-            'version' => '1.10.02',
+            'version' => '1.10.03',
             'versionStage' => '',
-            'versionDate' => '20251224',
+            'versionDate' => '20260521',
             'mysqlMinVer' => '5.5.8',
             'phpMinVer' => '8.2.0',
-            'copyright' => '2001-2025',
+            'copyright' => '2001-2026',
             'company' => 'The XMB Group',
         );
         
