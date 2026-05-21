@@ -258,7 +258,7 @@ if (! $goodCaptcha) {
 <td colspan="2"><strong><font color="<?= $THEME['cattext'] ?>"><a name="10" />&raquo;&nbsp;<?= $lang['admin_main_settings10'] ?></font></strong></td>
 </tr>
 <?php
-$recaptcha_link = '<br /><span class="smalltext">[ <a href="https://www.google.com/recaptcha/admin/" onclick="window.open(this.href); return false;">Setup</a> ]';
+$recaptcha_link = '<br /><span class="smalltext">[ <a href="https://console.cloud.google.com/security/recaptcha" onclick="window.open(this.href); return false;">Setup</a> ]';
 $admin->printsetting6($lang['google_captcha_onoff'], 'recaptchanew', 'google_captcha');
 $admin->printsetting2($lang['google_captcha_sitekey'].$recaptcha_link, 'recaptchakeynew', $SETTINGS['google_captcha_sitekey'], 50);
 $admin->printsetting2($lang['google_captcha_secretkey'], 'recaptchasecretnew', $SETTINGS['google_captcha_secret'], 50);
