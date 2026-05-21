@@ -37,7 +37,7 @@ class XMBVersion
     function get()
     {
         $data = array(
-            'version' => '1.10.03',
+            'version' => '1.10.04',
             'versionStage' => '',
             'versionDate' => '20260521',
             'mysqlMinVer' => '5.5.8',
