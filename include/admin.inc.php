@@ -391,7 +391,7 @@ class admin
                     } elseif (trim($a[$i]) == '') {
                         echo '&nbsp;';
                     } else {
-                        echo nl2br(htmlEsc($a[$i]));
+                        echo nl2br(htmlEsc($a[$i], storedData: true));
                     }
                     echo '</td>';
                 }

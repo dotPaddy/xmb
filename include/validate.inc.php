@@ -146,9 +146,14 @@ function recodeJavaOut(string $rawstring): string
  * @since 1.9.8 SP3 formerly cdataOut()
  * @since 1.10.00
  */
-function lessThanEsc(string $rawstring): string
+function lessThanEsc(string $rawstring, bool $storedData = false): string
 {
-    return htmlspecialchars($rawstring, ENT_NOQUOTES);
+    if ($storedData) {
+        // XMB does not store the encoding of any data, so we must not use the default charset because it results in an empty string in case of a mismatch.
+        return htmlspecialchars($rawstring, ENT_NOQUOTES, 'ISO-8859-1');
+    } else {
+        return htmlspecialchars($rawstring, ENT_NOQUOTES);
+    }
 }
 
 /**
@@ -158,9 +163,14 @@ function lessThanEsc(string $rawstring): string
  *
  * @since 1.10.00
  */
-function htmlEsc(string $text): string
+function htmlEsc(string $text, bool $storedData = false): string
 {
-    return htmlspecialchars($text, ENT_QUOTES | ENT_XHTML);
+    if ($storedData) {
+        // XMB does not store the encoding of any data, so we must not use the default charset because it results in an empty string in case of a mismatch.
+        return htmlspecialchars($text, ENT_QUOTES | ENT_XHTML, 'ISO-8859-1');
+    } else {
+        return htmlspecialchars($text, ENT_QUOTES | ENT_XHTML);
+    }
 }
 
 /**

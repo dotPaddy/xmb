@@ -2303,7 +2303,7 @@ class Upgrade
         $result = $this->upgrade_query('SELECT name, id FROM ' . $this->vars->tablepre . $table);
         $restrictions = $this->db->fetch_all($result);
         foreach ($restrictions as $restrict) {
-            $newname = attrOut($restrict['name']);
+            $newname = htmlEsc($restrict['name'], storedData: true);
             if ($newname !== $restrict['name']) {
                 $id = $restrict['id'];
                 $this->db->escape_fast($newname);
@@ -2348,7 +2348,7 @@ class Upgrade
             while ($row = $this->db->fetch_array($result)) {
                 $aid = (int) $row['aid'];
                 $edits = [];
-                $new = htmlEsc($row['filename']);
+                $new = htmlEsc($row['filename'], storedData: true);
                 if ($row['filename'] !== $new) {
                     // During alpha testing, this actually caused one of the thumbnail filenames to overflow the db column, so now we check for it.
                     $excess = strlen($new) - $this->vars::FILENAME_MAX_LENGTH;
@@ -2356,11 +2356,11 @@ class Upgrade
                         // Preserve the last 10 chars of the filename, in case it's our '-thumb.jpg' suffix.
                         $front = substr($row['filename'], 0, -($excess + 10));
                         $back = substr($row['filename'], -10);
-                        $new = htmlEsc($front . $back);
+                        $new = htmlEsc($front . $back, storedData: true);
                     }
                     $edits['filename'] = $new;
                 }
-                $new = htmlEsc($row['filetype']);
+                $new = htmlEsc($row['filetype'], storedData: true);
                 if ($row['filetype'] !== $new) {
                     $edits['filetype'] = $new;
                 }
@@ -2394,7 +2394,7 @@ class Upgrade
         $result = $this->upgrade_query('SELECT fid, name FROM ' . $this->vars->tablepre . $table);
         $forums = $this->db->fetch_all($result);
         foreach ($forums as $forum) {
-            $newname = htmlEsc(htmlspecialchars_decode(stripslashes($forum['name']), ENT_COMPAT));
+            $newname = htmlEsc(htmlspecialchars_decode(stripslashes($forum['name']), ENT_COMPAT), storedData: true);
             if ($newname !== $forum['name']) {
                 $fid = $forum['fid'];
                 $this->db->escape_fast($newname);
@@ -2430,7 +2430,7 @@ class Upgrade
                     $edits['avatar'] = $this->vars->full_url . substr($row['avatar'], 2);
                 }
                 if ($row['customstatus'] !== '') {
-                    $new = htmlEsc($row['customstatus']);
+                    $new = htmlEsc($row['customstatus'], storedData: true);
                     if ($row['customstatus'] !== $new) {
                         $edits['customstatus'] = $new;
                     }
@@ -2478,7 +2478,7 @@ class Upgrade
             while ($row = $this->db->fetch_array($result)) {
                 $pid = (int) $row['pid'];
                 $edits = [];
-                $new = htmlEsc(htmlspecialchars_decode(stripslashes($row['message']), ENT_NOQUOTES));
+                $new = htmlEsc(htmlspecialchars_decode(stripslashes($row['message']), ENT_NOQUOTES), storedData: true);
                 // Check for field overflow due to entity reference expansion.
                 if (strlen($new) > $this->vars::POST_MSG_MAX_LEN) {
                     $new = substr($new, 0, $this->vars::POST_MSG_MAX_LEN);
@@ -2520,7 +2520,7 @@ class Upgrade
         $result = $this->upgrade_query('SELECT id, title FROM ' . $this->vars->tablepre . $table);
         $ranks = $this->db->fetch_all($result);
         foreach ($ranks as $rank) {
-            $newtitle = htmlEsc($rank['title']);
+            $newtitle = htmlEsc($rank['title'], storedData: true);
             if ($newtitle !== $rank['title']) {
                 $id = $rank['id'];
                 $this->db->escape_fast($newtitle);
@@ -2562,7 +2562,7 @@ class Upgrade
         $result = $this->upgrade_query('SELECT value FROM ' . $this->vars->tablepre . $table . " WHERE name = 'bbrulestxt'");
         $value = $this->db->result($result);
         $this->db->free_result($result);
-        $newvalue = htmlEsc($value);
+        $newvalue = htmlEsc($value, storedData: true);
         if ($newvalue !== $value) {
             $this->db->escape_fast($newvalue);
             $this->upgrade_query('UPDATE ' . $this->vars->tablepre . $table . " SET value = '$newvalue' WHERE name = 'bbrulestxt'");
@@ -2637,7 +2637,7 @@ class Upgrade
             while ($row = $this->db->fetch_array($result)) {
                 $u2uid = (int) $row['u2uid'];
                 $edits = [];
-                $new = htmlEsc(htmlspecialchars_decode(stripslashes($row['message']), ENT_NOQUOTES));
+                $new = htmlEsc(htmlspecialchars_decode(stripslashes($row['message']), ENT_NOQUOTES), storedData: true);
                 if ($row['message'] !== $new) {
                     $edits['message'] = $new;
                 }

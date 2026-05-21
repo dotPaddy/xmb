@@ -587,7 +587,7 @@ class BBCode
     private function bbcode_out(string $message): string
     {
         $retval = $message;
-        $retval = htmlspecialchars($retval, double_encode: false);
+        $retval = htmlspecialchars($retval, encoding: 'ISO-8859-1', double_encode: false);
         $retval = str_replace(array('[', ']'), array('&#91;', '&#93;'), $retval);
         return $retval;
     }

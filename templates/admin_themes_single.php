@@ -1,3 +1,10 @@
+<?php
+
+declare(strict_types=1);
+
+namespace XMB;
+
+?>
 <tr bgcolor="<?= $THEME['altbg2'] ?>">
 <td>
 <form method="post" action="<?= $full_url ?>admin/themes.php?single=submit">
@@ -87,7 +94,7 @@
 </tr>
 <tr bgcolor="<?= $THEME['altbg2'] ?>" class="tablerow">
 <td><?= $lang['textfont'] ?></td>
-<td colspan="2"><input type="text" name="fnew" value="<?= htmlspecialchars($themestuff['font']) ?>" /></td>
+<td colspan="2"><input type="text" name="fnew" value="<?= htmlEsc($themestuff['font'], storedData: true) ?>" /></td>
 </tr>
 <tr bgcolor="<?= $THEME['altbg2'] ?>" class="tablerow">
 <td><?= $lang['font_size'] ?></td>

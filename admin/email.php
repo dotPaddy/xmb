@@ -70,7 +70,7 @@ if (noSubmit('settingsubmit')) {
     $template->token = $token->create('Control Panel/email', 'settings', $vars::NONCE_FORM_EXP);
 
     $template->mailerInConfig = ! empty($vars->mailer);
-    $template->passwordAttr = attrOut($vars->settings['mailer_password'] ?? '');
+    $template->passwordAttr = htmlEsc($vars->settings['mailer_password'] ?? '', storedData: true);
 
     $set = $email->getSettings();
     $type = $set['type'];

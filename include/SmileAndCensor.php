@@ -124,7 +124,7 @@ class SmileAndCensor
                 // Most $part values won't contain any smilies, so optimize by writing new strings only when necessary.
                 if (false === strpos($part, $code)) continue;
 
-                $altcode = attrOut($code);
+                $altcode = htmlEsc($code, storedData: true);
                 $part = str_replace($code, "<img src='$smiliesURL$filename' style='border:none' alt='$altcode' />", $part);
             }
         }
