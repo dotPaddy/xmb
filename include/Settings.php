@@ -46,9 +46,9 @@ class Settings
         if (false === $squery) {
             header('HTTP/1.0 500 Internal Server Error');
             if (file_exists(ROOT . 'install/')) {
-                exit('XMB is not yet installed. Please do so at this time. Just <a href="./install/index.php">click here</a>.');
+                exit('XMB is not yet installed. <a href="' . $this->vars->full_url . '/install/index.php">Please click here to begin</a>.');
             }
-            exit('Fatal Error: XMB is not installed. Please upload the /install/ directory to begin.');
+            exit('XMB is not installed. Please upload the /install/ directory to begin.');
         }
         if ($this->db->num_rows($squery) == 0) {
             header('HTTP/1.0 500 Internal Server Error');
@@ -103,11 +103,11 @@ class Settings
         }
 
         if (empty($this->vars->settings['ip_banning'])) {
-            $this->vars->settings['ip_banning'] == 'off';
+            $this->vars->settings['ip_banning'] = 'off';
         }
 
         if (empty($this->vars->settings['schema_version'])) {
-            $this->vars->settings['schema_version'] == '0';
+            $this->vars->settings['schema_version'] = '0';
         }
 
         // Validate maxattachsize with PHP configuration.
