@@ -31,7 +31,7 @@ namespace XMB;
  */
 class BootupLoader
 {
-    public function __construct(private Core $core, private DBStuff $db, private Template $template, private Variables $vars)
+    public function __construct(private Core $core, private DBStuff $db, private Features $features, private Template $template, private Variables $vars)
     {
         // Property promotion.
     }
@@ -83,7 +83,7 @@ class BootupLoader
 
         // Check other access restrictions
         if ('' === $serror) {
-            if ((int) $this->vars->settings['schema_version'] < 5) {
+            if (! $this->features->schemaHasSessions()) {
                 // During upgrade of session system, no features are available.
                 $serror = 'bstatus';
             } elseif (($action == 'login' || $action == 'lostpw') && $script == 'misc.php') {
@@ -105,7 +105,7 @@ class BootupLoader
 
         // Authenticate session or login credentials.
         $force_inv = false;
-        if ((int) $this->vars->settings['schema_version'] < 5) {
+        if (! $this->features->schemaHasSessions()) {
             $mode = 'disabled';
         } elseif (defined('XMB\UPGRADE') && isset($_POST['password'])) {
             $mode = 'login';
@@ -123,58 +123,6 @@ class BootupLoader
             'mode' => $mode,
             'serror' => $serror,
         ];
-    }
-
-    public function setCharset()
-    {
-        // Specify all charset variables as early as possible.
-        $action = getPhpInput('action', 'g');
-        $download = getInt('download');
-
-        if ($action != 'attachment' && !($action == 'templates' && $download != 0) && !($action == 'themes' && $download != 0)) {
-            header('Content-type: text/html;charset=' . $this->vars->lang['charset']);
-        }
-        if (function_exists('mb_list_encodings')) {
-            // The list of encodings common to mbstring and htmlspecialchars is extremely restrictive.
-            switch (strtoupper($this->vars->lang['charset'])) {
-                case 'BIG-5':
-                    // Though 'BIG5' is not found in mbstring docs or lists, the simple test mb_encoding_aliases('BIG5') does work.
-                    $newcharset = 'BIG5';
-                    break;
-                case 'GB2312':
-                    // Also listed under mb_encoding_aliases('EUC-CN')
-                    $newcharset = 'GB2312';
-                    break;
-                case 'UTF-8':
-                    $newcharset = 'UTF-8';
-                    break;
-                case 'WINDOWS-1251':
-                    $newcharset = 'Windows-1251';
-                    break;
-                default:
-                    $newcharset = 'ISO-8859-1';
-            }
-        } else {
-            $newcharset = 'ISO-8859-1';
-        }
-        ini_set('default_charset', $newcharset);
-    }
-
-    #[\Deprecated(message: "base elements and relative links are no longer used by default and this method will be removed in a future version", since: "1.10.00")]
-    public function setBaseElement()
-    {
-        // Create a base element so that links aren't broken if scripts are accessed using unexpected paths.
-        // XMB expects all links to be relative to $full_url + script name + query string.
-        $querystring = strstr($this->vars->url, '?');
-        if ($querystring === false) {
-            $querystring = '';
-        }
-        $querystring = preg_replace('/[^\x20-\x7e]/', '', $querystring);
-        if ($this->vars->url == $this->vars->cookiepath) {
-            $this->template->baseelement = '<base href="' . $this->vars->full_url . '" />' . "\n";
-        } else {
-            $this->template->baseelement = '<base href="' . $this->vars->full_url . basename($_SERVER['SCRIPT_NAME']) . attrOut($querystring) . '" />' . "\n";
-        }
     }
 
     public function setVisit()

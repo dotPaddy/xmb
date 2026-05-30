@@ -38,6 +38,7 @@ class Login
     public function __construct(
         private Core $core,
         private DBStuff $db,
+        private Features $features,
         private SessionMgr $session,
         private SQL $sql,
         private Template $template,
@@ -203,7 +204,7 @@ class Login
             && basename($_SERVER['SCRIPT_NAME']) != 'files.php'
             && (X_ADMIN || $serror == '' || $serror == 'guest' && X_MEMBER)
         ) {
-            if (strlen($vars->onlineip) > 15 && ((int) $vars->settings['schema_version'] < 9 || strlen($vars->onlineip) > 39)) {
+            if (strlen($vars->onlineip) > 15 && (! $this->features->schemaHasIPv6() || strlen($vars->onlineip) > 39)) {
                 $useip = '';
             } else {
                 $useip = $vars->onlineip;

@@ -142,7 +142,7 @@ if ($action == 'profile') {
             if ($oldPass == '') {
                 $core->error($lang['textnopassword']);
             }
-            $result = $passMan->checkLogin($oldPass, $storedPass, $vars->self['username'], $core->schemaHasPasswordV2());
+            $result = $passMan->checkLogin($oldPass, $storedPass, $vars->self['username']);
             if ($result == 'bad') {
                 $core->auditBadLogin($vars->self);
                 $core->error($lang['textpwincorrect']);

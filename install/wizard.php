@@ -128,10 +128,6 @@ switch ($status) {
 
 $vStep = intval($_REQUEST['step'] ?? 1);
 
-if ($vStep != 4) {
-    header("Content-type: text/html;charset=ISO-8859-1");
-}
-
 $class = [];
 for ($i = 1; $i <= 6; $i++) {
     $class[$i] = 'none';
@@ -261,14 +257,11 @@ switch ($vStep) {
 
                 switch ($_REQUEST['method']) {
                     case 1: // Show configuration on screen
-                        header("Content-type: text/html;charset=ISO-8859-1");
                         $template->configuration = $configuration;
                         $content = $template->process('install_config_inline.php');
                         break;
 
                     case 2: // Save configuration to disk
-                        header("Content-type: text/html;charset=ISO-8859-1");
-
                         if (file_put_contents(ROOT . 'config.php', $configuration) === false) {
                             $template->result = $vars->lang['config_write_error'];
                         } else {
@@ -298,8 +291,6 @@ switch ($vStep) {
                 exit;
 
             default:
-                header("Content-type: text/html;charset=ISO-8859-1");
-
                 // Get the DB types...
                 $template->types = '<select name="db_type"><option selected="selected" value="mysql">mysql</option></select>';
 

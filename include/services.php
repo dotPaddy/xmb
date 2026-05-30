@@ -31,6 +31,7 @@ use XMB\{
     Debug,
     DBStuff,
     Email,
+    Features,
     Forums,
     Login,
     Observer,
@@ -139,6 +140,22 @@ function email(?Email $email = null): Email
     static $cache;
     
     if ($email !== null) $cache = $email;
+    
+    return $cache;
+}
+
+/**
+ * Get the shared features service.
+ *
+ * @since 1.10.00
+ * @param Features $feature Required on first call, otherwise optional. Acts as the setter.
+ * @return Features
+ */
+function features(?Features $features = null): Features
+{
+    static $cache;
+    
+    if ($features !== null) $cache = $features;
     
     return $cache;
 }

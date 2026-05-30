@@ -63,6 +63,7 @@ require ROOT . 'include/captcha.inc.php';
 require ROOT . 'include/CartesianSize.php';
 require ROOT . 'include/debug.inc.php';
 require ROOT . 'include/Email.php';
+require ROOT . 'include/Features.php';
 require ROOT . 'include/format.php';
 require ROOT . 'include/Forums.php';
 require ROOT . 'include/functions.inc.php';
@@ -125,6 +126,7 @@ if (defined('XMB\INSTALL') && ! defined('XMB\INSTALL_P2')) {
     $boot->setVersion();
     translation()->langPanic();
     template()->addRefs();
+    $boot->setCharset();
     unset($boot);
     return;
 }
@@ -152,62 +154,62 @@ observer()->assertEmptyOutputStream('version.php');
 
 db($boot->connectDB());
 
-unset($boot);
-
 debug(new \XMB\Debug(db()));
 sql(new \XMB\SQL(db(), vars()->tablepre));
 validate(new \XMB\Validation(db()));
 
 forums(new \XMB\Forums(sql()));
-password(new \XMB\Password(sql()));
 settings(new \XMB\Settings(db(), sql(), vars()));
 smile(new \XMB\SmileAndCensor(sql()));
 token(new \XMB\Token(sql(), vars()));
 
 email(new \XMB\Email(vars())); // Depends on settings and will likely use it in the future.
+features(new \XMB\Features(settings()));
 theme(new \XMB\ThemeManager(forums(), settings(), sql(), template(), vars()));
 
 bbcode(new \XMB\BBCode(theme(), vars()));
+password(new \XMB\Password(features(), sql()));
 
 attach(new \XMB\Attach(bbcode(), db(), sql(), vars()));
 
-core(new \XMB\Core(attach(), bbcode(), db(), debug(), email(), forums(), password(), smile(), sql(), template(), token(), translation(), vars()));
+core(new \XMB\Core(attach(), bbcode(), db(), debug(), email(), forums(), password(), settings(), smile(), sql(), template(), token(), translation(), vars()));
 
 
 /* Start 2nd Phase of Bootup */
 
-$loader = new \XMB\BootupLoader(core(), db(), template(), vars());
+$loader = new \XMB\BootupLoader(core(), db(), features(), template(), vars());
 
 $loader->setHeaders();
 
-if (! core()->schemaHasSessions()) {
+if (! features()->schemaHasSessions()) {
     core()->loadLangWithoutSession();
-    if (defined('XMB\UPGRADE')) {
-        $xmbuser = validate()->postedVar(
-            varname: 'xmbuser',
-            dbescape: false,
-            sourcearray: 'c',
-        );
-        $xmbpw = getPhpInput('xmbpw', 'c');
-        define('XMB\X_SADMIN', sql()->checkUpgradeOldLogin($xmbuser, $xmbpw));
-        unset($loader, $xmbuser, $xmbpw);
-    } else {
+    $boot->setCharset();
+    if (! defined('XMB\UPGRADE')) {
         core()->unavailable('upgrade');
     }
+    $xmbuser = validate()->postedVar(
+        varname: 'xmbuser',
+        dbescape: false,
+        sourcearray: 'c',
+    );
+    $xmbpw = getPhpInput('xmbpw', 'c');
+    define('XMB\X_SADMIN', sql()->checkUpgradeOldLogin($xmbuser, $xmbpw));
+    unset($boot, $loader, $xmbuser, $xmbpw);
     return;
 }
+
 
 /* Authorize User, Set Up Session, and Load Language Translation */
 
 $params = $loader->prepareSession();
-session(new \XMB\Session\Manager($params['mode'], $params['serror'], core(), password(), sql(), token(), validate()));
-login(new \XMB\Login(core(), db(), session(), sql(), template(), translation(), vars()));
+session(new \XMB\Session\Manager($params['mode'], $params['serror'], core(), features(), password(), sql(), token(), validate()));
+login(new \XMB\Login(core(), db(), features(), session(), sql(), template(), translation(), vars()));
 login()->elevateUser($params['force_inv']);
 unset($params);
 
 if (defined('XMB\UPGRADE')) {
     return;
-} elseif ((int) vars()->settings['schema_version'] < \XMB\Schema::VER) {
+} elseif ((int) settings()->get('schema_version') < \XMB\Schema::VER) {
     if (X_SADMIN) {
         core()->redirect(vars()->full_url . 'install/', timeout: 0);
     } else {
@@ -218,9 +220,10 @@ if (defined('XMB\UPGRADE')) {
 
 /* Set Up HTML Templates and Themes */
 
-$loader->setCharset();
+$boot->setCharset();
 $loader->setVisit();
 theme()->setTheme();
+
 
 /* Theme Ready.  Make pretty errors. */
 
@@ -229,7 +232,7 @@ login()->sendErrors();
 
 /* Finish HTML Templates */
 
-if ((X_ADMIN || vars()->settings['bbstatus'] == 'on') && (X_MEMBER || vars()->settings['regviewonly'] == 'off')) {
+if ((X_ADMIN || settings()->get('bbstatus') == 'on') && (X_MEMBER || settings()->get('regviewonly') == 'off')) {
     $loader->createNavbarLinks();
     $loader->makePlugLinks();
     $loader->makeQuickJump();
@@ -246,6 +249,6 @@ $loader->startCompression();
 
 $loader->adminFirewall();
 
-unset($loader);
+unset($boot, $loader);
 
 observer()->assertEmptyOutputStream('header.php');

@@ -100,14 +100,11 @@ class ThemeManager
         unset($row);
         $this->more_theme_vars();
 
-        $this->template->css = '';
-        if ((int) $this->settings->get('schema_version') >= 6) {
-            $this->template->css = "<link rel='stylesheet' type='text/css' href='"
-                . $this->vars->full_url . "css.php"
-                . "?id=" . $this->vars->theme['themeid']
-                . "&amp;v=" . $this->vars->theme['version']
-                . "' />\n";
-        }
+        $this->template->css = "<link rel='stylesheet' type='text/css' href='"
+            . $this->vars->full_url . "css.php"
+            . "?id=" . $this->vars->theme['themeid']
+            . "&amp;v=" . $this->vars->theme['version']
+            . "' />\n";
 
         // additional CSS to load?
         if (file_exists(ROOT . $this->vars->theme['imgdir'] . '/theme.css')) {

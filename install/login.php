@@ -32,6 +32,7 @@ const UPGRADE = true;
 require ROOT . 'header.php';
 
 $core = Services\core();
+$features = Services\features();
 $sql = Services\sql();
 $tokenSvc = Services\token();
 $validate = Services\validate();
@@ -42,9 +43,9 @@ $username = $validate->postedVar('username', dbescape: false);
 if (strlen($username) == 0) {
     $core->put_cookie('xmbuser');  // Make sure user is logged out.
     $token = '';
-    if ($core->schemaHasTokens()) {
+    if ($features->schemaHasTokens()) {
         $token = $tokenSvc->create('Login', '', $vars::NONCE_FORM_EXP, anonymous: true);
-        if ($core->schemaHasSessions()) {
+        if ($features->schemaHasSessions()) {
             $session = Services\session();
             $session->preLogin($token);
         }
@@ -58,7 +59,7 @@ if (strlen($username) == 0) {
     </form>
     <?php
 } else {
-    if ($core->schemaHasSessions()) {
+    if ($features->schemaHasSessions()) {
         // Already logged in by Session\Manager
         if (! X_SADMIN) {
             echo "This script may be run only by a Super Administrator.<br />Please <a href='" . $vars->full_url . "install/login.php'>Try Again</a>.<br />";

@@ -40,7 +40,7 @@ class Password
 
     private const ALGO = PASSWORD_DEFAULT;
 
-    public function __construct(private SQL $sql)
+    public function __construct(private Features $features, private SQL $sql)
     {
         // Property promotion
     }
@@ -70,9 +70,10 @@ class Password
         string $rawPass,
         string $storedHash,
         string $username,
-        bool $changeCapable,
     ): string {
         if (strlen($rawPass) == 0) throw new InvalidArgumentException('The XMB Password class does not accept empty inputs.');
+
+        $changeCapable = $this->features->schemaHasPasswordV2();
 
         if ($this->isObsolete($storedHash)) {
             if (strlen($storedHash) == 32) {

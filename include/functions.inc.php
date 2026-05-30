@@ -41,6 +41,7 @@ class Core
         private Email $email,
         private Forums $forums,
         private Password $password,
+        private Settings $settings,
         private SmileAndCensor $smile,
         private SQL $sql,
         private Template $template,
@@ -357,7 +358,7 @@ class Core
             $prefix = '';
             $extension = strtolower(get_extension($post['filename']));
             $img_extensions = ['jpg', 'jpeg', 'jpe', 'gif', 'png', 'wbmp', 'wbm', 'bmp'];
-            if ($this->vars->settings['attachimgpost'] == 'on' && in_array($extension, $img_extensions)) {
+            if ($this->settings->get('attachimgpost') == 'on' && in_array($extension, $img_extensions)) {
                 if ((int) $attach['thumbid'] > 0) {
                     $post['thumburl'] = $this->attach->getURL((int) $attach['thumbid'], $pid, $attach['thumbname'], $htmlencode, $quarantine);
                     $result = explode('x', $attach['thumbsize']);
@@ -478,7 +479,7 @@ class Core
     {
         $retval = $this->modcheck($username, $mods);
 
-        if ($retval && $this->vars->settings['allowrankedit'] != 'off') {
+        if ($retval && $this->settings->get('allowrankedit') != 'off') {
             switch ($origstatus) {
                 case 'Super Administrator':
                     if (! X_SADMIN) {
@@ -788,15 +789,15 @@ class Core
         $counter = 0;
         $smilie = [];
         $sms = [];
-        $smcols = (int) $this->vars->settings['smcols'];
-        $smtotal = (int) $this->vars->settings['smtotal'];
+        $smcols = (int) $this->settings->get('smcols');
+        $smtotal = (int) $this->settings->get('smtotal');
         if ($type == 'quick') {
             $smcols = 4;
             $smtotal = 16;
         } elseif ($type == 'full') {
             $smtotal = 0;
         }
-        $enabled = $this->smile->isAnySmilieInstalled() && $this->vars->settings['smileyinsert'] == 'on' && $smcols > 0;
+        $enabled = $this->smile->isAnySmilieInstalled() && $this->settings->get('smileyinsert') == 'on' && $smcols > 0;
 
         if (! $enabled) return '';
         
@@ -902,7 +903,7 @@ class Core
 
         $totaltime = ($endtime - $this->vars->starttime);
 
-        $footer_options = explode('-', $this->vars->settings['footer_options']);
+        $footer_options = explode('-', $this->settings->get('footer_options'));
 
         if (X_ADMIN && in_array('serverload', $footer_options)) {
             $template->load = $this->ServerLoad();
@@ -1100,8 +1101,8 @@ class Core
         switch ($mode) {
             case 'bstatus':
                 // The board status setting is 'off' during a normal startup.
-                if ($this->vars->settings['bboffreason'] != '') {
-                    $this->message(nl2br($this->vars->settings['bboffreason']));
+                if ($this->settings->get('bboffreason') != '') {
+                    $this->message(nl2br($this->settings->get('bboffreason')));
                 } else {
                     $this->message($this->vars->lang['textbstatusdefault']);
                 }
@@ -1124,8 +1125,8 @@ class Core
         if (! empty($this->vars->lang)) return;
 
         $success = false;
-        if (! empty($vars->settings['langfile'])) {
-            $success = $this->tran->loadLang($vars->settings['langfile']);
+        if ($this->settings->get('langfile') != '') {
+            $success = $this->tran->loadLang($this->settings->get('langfile'));
         }
         if (! $success) {
             $this->tran->langPanic();
@@ -1223,7 +1224,7 @@ class Core
      */
     public function standardTime(int $timestamp): int
     {
-        $extraHours = (float) $this->vars->settings['addtime'];
+        $extraHours = (float) $this->settings->get('addtime');
 
         $extraOffset = (int) ($extraHours * 3600);
 
@@ -1341,7 +1342,7 @@ class Core
                     $fids[$forum['type']][] = $forum['fid'];
                 }
             } elseif ($mode == 'forum') {
-                if ($this->vars->settings['hideprivate'] == 'off' || $forum['type'] == 'group' || $perms[$this->vars::PERMS_VIEW]) {
+                if ($this->settings->get('hideprivate') == 'off' || $forum['type'] == 'group' || $perms[$this->vars::PERMS_VIEW]) {
                     $permitted[] = $forum;
                     $fids[$forum['type']][] = $forum['fid'];
                 }
@@ -1842,7 +1843,7 @@ class Core
      */
     public function makeSearchLink(int $fid = 0): string
     {
-        if ($this->vars->settings['searchstatus'] == 'on') {
+        if ($this->settings->get('searchstatus') == 'on') {
             $template = new Template($this->vars);
             $template->addRefs();
             if ($fid == 0) {
@@ -1865,7 +1866,7 @@ class Core
      */
     public function getRegistrationLink(): string
     {
-        if ($this->vars->settings['regstatus'] == 'on' && ! X_MEMBER) {
+        if ($this->settings->get('regstatus') == 'on' && ! X_MEMBER) {
             $url = $this->vars->full_url . 'member.php?action=reg';
             $link = "<a href='$url'>" . $this->vars->lang['textregister'] . '</a>';
         } else {
@@ -2250,16 +2251,16 @@ class Core
         $template = new Template($this->vars);
         $template->addRefs();
 
-        $maxuploads = (int) $this->vars->settings['filesperpost'] - $currentAttachCount;
+        $maxuploads = (int) $this->settings->get('filesperpost') - $currentAttachCount;
         if ($maxuploads <= 0) return '';
         $max_dos_limit = (int) ini_get('max_file_uploads');
         if ($max_dos_limit > 0) $maxuploads = min($maxuploads, $max_dos_limit);
         $template->maxuploads = $maxuploads;
 
-        $template->maxsize = $this->attach->getSizeFormatted(min(phpShorthandValue('upload_max_filesize'), (int) $this->vars->settings['maxattachsize']));
+        $template->maxsize = $this->attach->getSizeFormatted(min(phpShorthandValue('upload_max_filesize'), (int) $this->settings->get('maxattachsize')));
 
         $max_dos_size = phpShorthandValue('post_max_size');
-        $max_xmb_size = (int) $this->vars->settings['filesperpost'] * (int) $this->vars->settings['maxattachsize'];
+        $max_xmb_size = (int) $this->settings->get('filesperpost') * (int) $this->settings->get('maxattachsize');
         $maxtotal = (0 == $max_dos_size) ? $max_xmb_size : min($max_dos_size, $max_xmb_size);
         $template->maxtotal = $this->attach->getSizeFormatted($maxtotal);
         
@@ -2352,35 +2353,27 @@ class Core
         $this->db->query("DELETE FROM " . $this->vars->tablepre . "hold_attachments WHERE uid = $uid AND pid = 0");
     }
 
-    /**
-     * @since 1.10.00
-     */
+    #[\Deprecated(message: "this method has moved.  Use the features service instead", since: "1.10.05")]
     public function schemaHasSessions(): bool
     {
-        return (int) $this->vars->settings['schema_version'] >= 5;
+        return (int) $this->settings->get('schema_version') >= 5;
     }
 
-    /**
-     * @since 1.10.00
-     */
+    #[\Deprecated(message: "this method has moved.  Use the features service instead", since: "1.10.05")]
     public function schemaHasSessionNames(): bool
     {
-        return (int) $this->vars->settings['schema_version'] >= 13;
+        return (int) $this->settings->get('schema_version') >= 13;
     }
 
-    /**
-     * @since 1.10.00
-     */
+    #[\Deprecated(message: "this method has moved.  Use the features service instead", since: "1.10.05")]
     public function schemaHasTokens(): bool
     {
-        return (int) $this->vars->settings['schema_version'] >= 5;
+        return (int) $this->settings->get('schema_version') >= 5;
     }
 
-    /**
-     * @since 1.10.00
-     */
+    #[\Deprecated(message: "this method has moved.  Use the features service instead", since: "1.10.05")]
     public function schemaHasPasswordV2(): bool
     {
-        return (int) $this->vars->settings['schema_version'] >= 10;
+        return (int) $this->settings->get('schema_version') >= 10;
     }
 }

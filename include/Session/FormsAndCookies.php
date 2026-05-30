@@ -26,6 +26,7 @@ namespace XMB\Session;
 
 use RuntimeException;
 use XMB\Core;
+use XMB\Features;
 use XMB\Password;
 use XMB\SQL;
 use XMB\Token;
@@ -59,8 +60,14 @@ class FormsAndCookies implements Mechanism
     private const TEST_COOKIE = 'test';
     private const USER_COOKIE = 'xmbuser';
 
-    public function __construct(private Core $core, private Password $password, private SQL $sql, private Token $token, private Validation $validate)
-    {
+    public function __construct(
+        private Core $core,
+        private Features $features,
+        private Password $password,
+        private SQL $sql,
+        private Token $token,
+        private Validation $validate,
+    ) {
         // Property promotion.
     }
 
@@ -97,7 +104,7 @@ class FormsAndCookies implements Mechanism
             return new Data();
         }
 
-        $allowChanges = $this->core->schemaHasPasswordV2() && ! defined('XMB\UPGRADE');
+        $allowChanges = $this->features->schemaHasPasswordV2() && ! defined('XMB\UPGRADE');
         $result = $this->password->checkLogin($pinput, $data->password, $data->member['username'], $allowChanges);
         switch ($result) {
             case 'bad':
@@ -277,7 +284,7 @@ class FormsAndCookies implements Mechanism
 
         $agent = isset($_SERVER['HTTP_USER_AGENT']) ? substr($_SERVER['HTTP_USER_AGENT'], 0, 255) : '';
 
-        $sname = $this->core->schemaHasSessionNames() ? $data->comment : null;
+        $sname = $this->features->schemaHasSessionNames() ? $data->comment : null;
 
         $success = $this->sql->saveSession($token, $data->member['username'], time(), $expires, $regenerate, $replaces, $agent, $sname);
 
@@ -314,7 +321,7 @@ class FormsAndCookies implements Mechanism
 
         $agent = isset($_SERVER['HTTP_USER_AGENT']) ? substr($_SERVER['HTTP_USER_AGENT'], 0, 255) : '';
 
-        $sname = $this->core->schemaHasSessionNames() ? $oldsession['name'] : null;
+        $sname = $this->features->schemaHasSessionNames() ? $oldsession['name'] : null;
 
         $token = bin2hex(random_bytes(self::TOKEN_BYTES));
         $success = $this->sql->saveSession($token, $oldsession['username'], (int) $oldsession['login_date'], (int) $oldsession['expire'], $regenerate, $replaces, $agent, $sname);
@@ -422,7 +429,7 @@ class FormsAndCookies implements Mechanism
      */
     public function checkOrigin(): bool
     {
-        if (! $this->core->schemaHasTokens()) return true;
+        if (! $this->features->schemaHasTokens()) return true;
 
         // Due to the anonymous nature of a login request, we need to check both the form integrity and the cookie integrity.
         $cookieToken = $this->get_cookie(self::FORM_COOKIE);

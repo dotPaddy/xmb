@@ -25,6 +25,7 @@ declare(strict_types=1);
 namespace XMB\Session;
 
 use XMB\Core;
+use XMB\Features;
 use XMB\Password;
 use XMB\SQL;
 use XMB\Token;
@@ -53,13 +54,14 @@ class Manager
         string $mode,
         private string $serror,
         private Core $core,
+        private Features $features,
         private Password $password,
         private SQL $sql,
         private Token $token,
         private Validation $validate
     ) {
         $this->mechanisms = [
-            new FormsAndCookies($core, $password, $sql, $token, $validate),
+            new FormsAndCookies($core, $features, $password, $sql, $token, $validate),
         ];
 
         switch ($mode) {
